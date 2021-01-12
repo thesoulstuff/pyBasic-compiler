@@ -34,11 +34,26 @@ class Lexer:
 
     # Skip Comments
     def skip_comment(self,):
-        pass
+        if self.cur_char == '#':
+            while self.cur_char != '\n':
+                self.next_char()
+
+    @staticmethod
+    def check_keyword(token_text:str):
+        '''
+        token_text: str, identifier text
+        returns
+        Token_Type: check if the given token is or not a keyword
+        '''
+        for kind in Token_Type:
+            if kind.name == token_text and kind.value >= 100 and kind.value < 200:
+                return kind
+        return None
 
     # Return next token
     def get_token(self,):
-        print(self.cur_char)
+        self.skip_white_space()
+        self.skip_comment()
         if self.cur_char == '+':
             token = Token(self.cur_char, Token_Type.PLUS)
         elif self.cur_char == '-':
@@ -79,6 +94,46 @@ class Lexer:
                 token = Token(last_char+self.cur_char, Token_Type.NOTEQ)
             else:
                 self.abort('Expected !=, got {}'.format(self.peek()))
+        elif self.cur_char == '\"':
+            self.next_char()
+            start_pos = self.cur_pos
+
+            while self.cur_char != '\"':
+                # No support for special character... maybe later
+                if self.cur_char == '\r' or self.cur_char == '\n' or self.cur_char == '\t' or self.cur_char == '%': # Fix for pep8
+                    self.abort('Illegal character in string')
+                self.next_char()
+
+            token_text + self.source[start_pos:self.cur_pos]
+            token = Token(token_text, Token_Type.STRING)
+        elif self.cur_char.isdigit():
+            start_pos = self.cur_pos
+            while self.peek().isdigit():
+                self.next_char()
+            if self.peek() == '.':
+                self.next_char()
+
+                if not self.peek().isdigit():
+                    self.abort('Illegal character in number.')
+                while self.peek().isdigit():
+                    self.next_char()
+
+            token_text = self.source[start_pos:self.cur_pos+1]
+            token = Token(token_text, Token_Type.NUMBER)
+
+        elif self.cur_char.isalpha():
+            start_pos = self.cur_pos
+            while self.peek().isalnum():
+                self.next_char()
+
+            token_text = self.source[start_pos:self.cur_pos+1]
+            keyword = Token.check_keyword(token_text)
+            if keyword is None:
+                token = Token(token_text, Token_Type.IDENT)
+            else:
+                token = Token(token_text, keyword)
+
+
         else:
             # Unkown
             self.abort('Unkown token: {}'.format(self.cur_char))

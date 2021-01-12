@@ -1,7 +1,7 @@
 from lex import *
 
 def main():
-    source = '=-*/'
+    source = '=-*/!===<=>123.23'
     lexer = Lexer(source)
     token =lexer.get_token()
 
