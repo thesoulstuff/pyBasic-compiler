@@ -38,17 +38,6 @@ class Lexer:
             while self.cur_char != '\n':
                 self.next_char()
 
-    @staticmethod
-    def check_keyword(token_text:str):
-        '''
-        token_text: str, identifier text
-        returns
-        Token_Type: check if the given token is or not a keyword
-        '''
-        for kind in Token_Type:
-            if kind.name == token_text and kind.value >= 100 and kind.value < 200:
-                return kind
-        return None
 
     # Return next token
     def get_token(self,):
@@ -104,7 +93,7 @@ class Lexer:
                     self.abort('Illegal character in string')
                 self.next_char()
 
-            token_text + self.source[start_pos:self.cur_pos]
+            token_text = self.source[start_pos:self.cur_pos]
             token = Token(token_text, Token_Type.STRING)
         elif self.cur_char.isdigit():
             start_pos = self.cur_pos
@@ -142,12 +131,22 @@ class Lexer:
 
 
 #token class
-# Maybe this should be a dataclass
 class Token:
     def __init__(self, token_text, token_kind):
         self.text = token_text
         self.kind = token_kind
 
+    @staticmethod
+    def check_keyword(token_text:str):
+        '''
+        token_text: str, identifier text
+        returns
+        Token_Type: check if the given token is or not a keyword
+        '''
+        for kind in Token_Type:
+            if kind.name == token_text and kind.value >= 100 and kind.value < 200:
+                return kind
+        return None
 
 class Token_Type(enum.Enum):
     EOF = -1

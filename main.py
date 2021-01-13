@@ -5,7 +5,7 @@ from parser import *
 def main():
     print('Teeny Tiny Compiler')
 
-    if len(sys.lexer) != 2:
+    if len(sys.argv) != 2:
         sys.exit('Error: Compiler needs source file as argument.')
     with open(sys.argv[1], 'r') as inputFile:
         source = inputFile.read()
