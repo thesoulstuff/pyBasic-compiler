@@ -3,20 +3,129 @@ from lex import *
 
 class Parser:
     def __init__(self, lexer):
-        pass
+        self.lexer = lexer
+
+        self.cur_token = None
+        self.peek_token = None
+
+        self.next_token()
+        self.next_token()
 
     def check_token(self, kind):
-        pass
+        return kind == self.cur_token.kind
 
     def check_peek(self, kind):
-        pass
+        return kind == self.peek_token.kind
 
     def match(self, kind):
-        pass
+        if not self.check_token(kind):
+            self.abort('Expected {}, got {}'.format(
+                kind.name, 
+                self.cur_token.kind.name)
+                )
+        self.next_token()
 
-    def next_token(self, kind):
-        pass
+    def next_token(self,):
+        self.cur_token = self.peek_token
+        self.peek_token = self.lexer.get_token()
 
     def abort(self, message):
         sys.exit('Error. {}'.format(message))
+
+    # Production rules
+    # program ::= {statement}
+    def program(self,):
+        print("PROGRAM")
+
+        while self.check_token(Token_Type.NEWLINE):
+            self.next_token()
+
+        # Parse all the statements
+        while not self.check_token(Token_Type.EOF):
+            self.statement()
+
+    def statement(self,):
+        # PRINT (expression | string)
+        if self.check_token(Token_Type.PRINT):
+            print("STATEMENT PRINT")
+            self.next_token()
+
+            if self.check_token(Token_Type.STRING):
+                self.next_token()
+            else:
+                self.expression()
+        
+        # IF comparison THEN {statemen} ENDIF
+        elif self.check_token(Token_Type.IF):
+            print('STATEMENT IF')
+            self.next_token()
+            self.comparison()
+
+            self.match(Token_Type.THEN)
+            self.nl()
+
+            #Zero or more statements
+            while not self.check_token(Token_Type.ENDIF):
+                self.statement()
+
+            self.match(Token_Type.ENDIF)
+
+        elif self.check_token(Token_Type.WHILE):
+            print('STATEMENT WHILE')
+            self.next_token()
+            self.comparison()
+
+            self.match(Token_Type.REPEAT)
+            self.nl()
+
+            while not self.check_token(Token_Type.ENDWHILE):
+                self.statement()
+
+            self.match(Token_Type.ENDWHILE)
+
+        elif self.check_token(Token_Type.LABEL):
+            print("STATEMENT LABEL")
+            self.next_token()
+            self.match(Token_Type.IDENT)
+
+
+        elif self.check_token(Token_Type.GOTO):
+            print("STATEMENT GOTO")
+            self.next_token()
+            self.match(Token_Type.IDENT)
+
+
+        elif self.check_token(Token_Type.LET):
+            print("STATEMENT LET")
+            self.next_token()
+            self.match(Token_Type.IDENT)
+            self.match(Token_Type.EQ)
+            self.expression()
+
+        
+        elif self.check_token(Token_Type.INPUT):
+            print("STATEMENT INPUT")
+            self.next_token()
+            self.match(Token_Type.IDENT)
+            
+        else:
+            self.abort('Invalid statement at {} ({})'.format(
+                self.cur_token.text,
+                self.cur_token.kind.name
+                )
+                )
+
+        self.nl()
+
+    # nl ::= '\n'
+    def nl(self,):
+        print("NEWLINE")
+
+        self.match(Token_Type.NEWLINE)
+
+        while self.check_token(Token_Type.NEWLINE):
+            self.next_token()
+
+
+
 
