@@ -5,6 +5,10 @@ class Parser:
     def __init__(self, lexer):
         self.lexer = lexer
 
+        self.symbols = set() # Variables
+        self.labels_declared = set() # Labels declared
+        self.labels_gotoed = set() # Goto
+
         self.cur_token = None
         self.peek_token = None
 
@@ -43,6 +47,14 @@ class Parser:
         # Parse all the statements
         while not self.check_token(Token_Type.EOF):
             self.statement()
+
+        for label in self.labels_gotoed:
+            if label not in self.labels_declared:
+                self.abort('Attempting to GOTO to undeclared lable: {}'.format(
+                    label
+                    )
+                )
+
 
     def comparison(self,):
         print('COMPARSION')
@@ -100,6 +112,13 @@ class Parser:
         if self.check_token(Token_Type.NUMBER):
             self.next_token()
         elif self.check_token(Token_Type.IDENT):
+
+            if self.cur_token.text not in self.symbols:
+                self.abort('Referencing variable before assignment: {}'.format(
+                    self.cur_token.text
+                    )
+                )
+
             self.next_token()
         else:
             self.abort('Unexpected token at {}'.format(
@@ -150,18 +169,34 @@ class Parser:
         elif self.check_token(Token_Type.LABEL):
             print("STATEMENT LABEL")
             self.next_token()
+
+            if self.cur_token.text in self.labels_declared:
+                self.abort('Label already exists: {}'.format(
+                    self.cur_token
+                    )
+                )
+            self.labels_declared.add(self.cur_token.text)
+
+
             self.match(Token_Type.IDENT)
 
 
         elif self.check_token(Token_Type.GOTO):
             print("STATEMENT GOTO")
             self.next_token()
+
+            self.labels_gotoed.add(self.cur_token.text)
+
             self.match(Token_Type.IDENT)
 
 
         elif self.check_token(Token_Type.LET):
             print("STATEMENT LET")
             self.next_token()
+
+            if self.cur_token.text not in self.symbols:
+                self.symbols.add(self.cur_token.text)
+
             self.match(Token_Type.IDENT)
             self.match(Token_Type.EQ)
             self.expression()
@@ -170,6 +205,10 @@ class Parser:
         elif self.check_token(Token_Type.INPUT):
             print("STATEMENT INPUT")
             self.next_token()
+
+            if self.cur_token.text not in self.symbols:
+                self.symbols.add(self.cur_token.text)
+
             self.match(Token_Type.IDENT)
             
         else:
