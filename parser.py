@@ -44,6 +44,70 @@ class Parser:
         while not self.check_token(Token_Type.EOF):
             self.statement()
 
+    def comparison(self,):
+        print('COMPARSION')
+
+        self.expression()
+
+        if self.is_comparison_operator():
+            self.next_token()
+            self.expression()
+        else:
+            self.abort('Expected comparison operator at: {}'.format(
+                self.cur_token.text
+                )
+            )
+
+        while self.is_comparison_operator():
+            self.next_token()
+            self.expression()
+
+    def is_comparison_operator(self,):
+        return self.check_token(Token_Type.GT) or \
+                self.check_token(Token_Type.GTEQ) or \
+                self.check_token(Token_Type.LT) or \
+                self.check_token(Token_Type.LTEQ) or \
+                self.check_token(Token_Type.EQEQ) or \
+                self.check_token(Token_Type.NOTEQ)
+
+    def expression(self,):
+        print("Expression")
+
+        self.term()
+        while self.check_token(Token_Type.PLUS) or self.check_token(Token_Type.MINUS):
+            self.next_token()
+            self.term()
+
+    def term(self,):
+        print('TERM')
+
+        self.unary()
+
+        while self.check_token(Token_Type.SLASH) or self.check_token(Token_Type.ASTERISK):
+            self.next_token()
+            self.unary()
+
+    def unary(self,):
+        print('UNARY')
+
+        if self.check_token(Token_Type.PLUS) or self.check_token(Token_Type.MINUS):
+            self.next_token()
+        self.primary()
+
+    def primary(self,):
+        print('PRIMARY ({})'.format(self.cur_token.text))
+
+        if self.check_token(Token_Type.NUMBER):
+            self.next_token()
+        elif self.check_token(Token_Type.IDENT):
+            self.next_token()
+        else:
+            self.abort('Unexpected token at {}'.format(
+                self.cur_token.text
+                )
+            )
+
+
     def statement(self,):
         # PRINT (expression | string)
         if self.check_token(Token_Type.PRINT):
